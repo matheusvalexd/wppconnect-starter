@@ -234,7 +234,7 @@ app.post('/consulta-online', async (req, res) => {
   });
 });
 
-/ Função para remover a configuração do subdomínio no arquivo Nginx
+// Função para remover a configuração do subdomínio no arquivo Nginx
 const removerConfiguracaoNginx = async (porta) => {
   try {
     const subdominio = `cloud${porta}.wzapi.cloud`;
