@@ -44,7 +44,7 @@ const modificarArquivoNginx = async (porta) => {
     const nginxFileEnabled = `/etc/nginx/sites-enabled/wpp${porta}`;
 
     // Ler o conteúdo do arquivo
-    const nginxFileContents = fs.readFileSync(nginxFilePath, 'utf-8');
+    //const nginxFileContents = fs.readFileSync(nginxFilePath, 'utf-8');
 
     // Adicionar o código ao final do arquivo
     const novoConteudo = `
