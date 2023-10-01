@@ -64,8 +64,7 @@ server {
 
     // Adicionar o novo conteúdo ao arquivo
     fs.appendFileSync(nginxFilePath, novoConteudo);
-  const certbotCommand = `certbot --nginx -d ${subdominio}`;
-    const { stdout, stderr } = await exec(certbotCommand);
+    
     return true;
   } catch (err) {
     console.error('Erro ao modificar o arquivo Nginx:', err);
@@ -143,6 +142,7 @@ app.post('/criar-instancia', async (req, res) => {
 const construirInstanciaEmSegundoPlano = async (porta) => {
   try {
     const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
+    const subdominio = `cloud${porta}.wzapi.cloud`;
 
     // Iniciar o npm install em segundo plano
     console.log(`Executando 'npm install' na pasta ${cloneDir}...`);
@@ -151,7 +151,7 @@ const construirInstanciaEmSegundoPlano = async (porta) => {
 
     // Iniciar o npm run build em segundo plano
     console.log(`Executando 'npm run build' na pasta ${cloneDir}...`);
-    await exec(`cd ${cloneDir} && npm run build`);
+    await exec(`cd ${cloneDir} && npm run build && pm2 start npm --name wpp${porta} -- start && certbot --nginx -d ${subdominio}`);
     console.log(`'npm run build' concluído na pasta ${cloneDir}.`);
   } catch (err) {
     console.error(`Erro ao construir a instância para a porta ${porta}:`, err);
