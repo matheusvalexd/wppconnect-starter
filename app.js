@@ -250,7 +250,7 @@ const removerConfiguracaoNginx = async (porta) => {
     );
 
     // Atualizar o arquivo com o novo conteúdo
-    fs.writeFileSync(nginxFilePath, novoConteúdo, 'utf-8');
+    fs.writeFileSync(nginxFilePath, novoConteudo, 'utf-8');
 
     // Recarregar o serviço Nginx para aplicar as alterações
     await exec('sudo service nginx reload');
