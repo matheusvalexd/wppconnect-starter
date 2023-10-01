@@ -40,7 +40,8 @@ const modificarConfig = (configFilePath, porta, maxListeners, secretKey) => {
 const modificarArquivoNginx = async (porta) => {
   try {
     const subdominio = `cloud${porta}.wzapi.cloud`;
-    const nginxFilePath = '/etc/nginx/sites-available/wpp';
+    const nginxFilePath = `/etc/nginx/sites-available/wpp${porta}`;
+    const nginxFileEnabled = `/etc/nginx/sites-enabled/wpp${porta}`;
 
     // Ler o conteúdo do arquivo
     const nginxFileContents = fs.readFileSync(nginxFilePath, 'utf-8');
@@ -64,8 +65,9 @@ server {
 `;
 
     // Adicionar o novo conteúdo ao arquivo
-    fs.appendFileSync(nginxFilePath, novoConteudo);
-    
+    fs.writeFileSync(nginxFilePath, novoConteudo);
+
+    await exec(`ln -s ${nginxFilePath} ${nginxFileEnabled}`);
     return true;
   } catch (err) {
     console.error('Erro ao modificar o arquivo Nginx:', err);
