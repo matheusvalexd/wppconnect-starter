@@ -2,8 +2,8 @@ const express = require('express');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const fs = require('fs');
-const pm2 = require('pm2');
 const path = require('path');
+const pm2 = require('pm2');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -143,9 +143,15 @@ app.post('/criar-instancia', async (req, res) => {
 const construirInstanciaEmSegundoPlano = async (porta) => {
   try {
     const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
+
+    // Iniciar o npm install em segundo plano
+    console.log(`Executando 'npm install' na pasta ${cloneDir}...`);
+    await exec(`cd ${cloneDir} && npm install`);
+    console.log(`'npm install' concluído na pasta ${cloneDir}.`);
+
     // Iniciar o npm run build em segundo plano
     console.log(`Executando 'npm run build' na pasta ${cloneDir}...`);
-    await exec(`cd ${cloneDir} && npm install && npm run build && pm2 start npm --name wpp${porta} -- start`);
+    await exec(`cd ${cloneDir} && npm run build`);
     console.log(`'npm run build' concluído na pasta ${cloneDir}.`);
   } catch (err) {
     console.error(`Erro ao construir a instância para a porta ${porta}:`, err);
@@ -207,6 +213,7 @@ app.post('/consulta-online', async (req, res) => {
     });
   });
 });
+
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
