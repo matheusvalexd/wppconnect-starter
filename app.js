@@ -81,6 +81,7 @@ const criarInstancia = async (porta, maxListeners) => {
   try {
     // Clonar o repositório do GitHub
     await exec(`git clone https://github.com/wppconnect-team/wppconnect-server.git ${cloneDir}`);
+    await exec(`sudo In -s /media/root/Extensao/wppconnect-main/node_modules ${cloneDir}`);
 
     // Alterar as configurações no arquivo config.ts
     const configFilePath = path.join(cloneDir, 'src', 'config.ts');
@@ -140,7 +141,7 @@ app.post('/criar-instancia', async (req, res) => {
 });
 
 // Endpoint para construir a instância (npm install e npm run build)
-const construirInstanciaEmSegundoPlano = async (porta) => {
+const construirInstanciaEmSegundoPlano = async (porta, secretKey) => {
   try {
     const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
     const subdominio = `cloud${porta}.wzapi.cloud`;
@@ -158,6 +159,7 @@ const construirInstanciaEmSegundoPlano = async (porta) => {
     const webhookData = {
   porta: porta,
   dominio: subdominio,
+  secretKey: secretKey,
 };
 
 // URL do webhook
@@ -181,13 +183,14 @@ app.post('/buildar-instancia', async (req, res) => {
   // apenas inicia o processo de construção em segundo plano.
 
   const { porta } = req.body;
-
+  const { secretKey } = req.body;
+  
   if (!porta) {
     return res.status(400).json({ error: 'O parâmetro "porta" é obrigatório.' });
   }
 
   // Inicie o processo de construção em segundo plano
-  construirInstanciaEmSegundoPlano(porta);
+  construirInstanciaEmSegundoPlano(porta, secretKey);
 
   // Retorne uma resposta de sucesso imediata
   console.log(`Construção para a porta ${porta} iniciada com sucesso.`);
