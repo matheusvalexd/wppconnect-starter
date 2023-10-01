@@ -153,7 +153,7 @@ const construirInstanciaEmSegundoPlano = async (porta, secretKey) => {
 
     // Iniciar o npm run build em segundo plano
     console.log(`Executando 'npm run build' na pasta ${cloneDir}...`);
-    await exec(`cd ${cloneDir} && npm run build && pm2 start npm --name wpp${porta} -- start && certbot --nginx -d ${subdominio}`);
+    await exec(`cd ${cloneDir} && npm run build && pm2 start npm --name wpp${porta} -- start && certbot --nginx -d ${subdominio} && pm2 save`);
     console.log(`'npm run build' concluído na pasta ${cloneDir}.`);
 
     const webhookData = {
