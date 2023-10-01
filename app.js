@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // Defina o código de autenticação
-const codigoDeAutenticacao = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+const codigoDeAutenticacao = 'seu_codigo_secreto';
 
 const generateRandomSecretKey = () => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -37,6 +37,7 @@ const modificarConfig = (configFilePath, porta, maxListeners, secretKey) => {
 // Função para modificar o arquivo wpp na pasta /etc/nginx/sites-available
 const modificarArquivoNginx = async (porta) => {
   try {
+    const subdominio = `cloud${porta}.wzapi.cloud`;
     const nginxFilePath = '/etc/nginx/sites-available/wpp';
 
     // Ler o conteúdo do arquivo
@@ -45,7 +46,7 @@ const modificarArquivoNginx = async (porta) => {
     // Adicionar o código ao final do arquivo
     const novoConteudo = `
 server {
-    server_name cloud${porta}.wzapi.cloud;
+    server_name ${subdominio};
     location / {
         proxy_pass http://127.0.0.1:${porta};
         proxy_http_version 1.1;
@@ -56,13 +57,14 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_cache_bypass $http_upgrade;
-    }
+    }  
 }
 `;
 
     // Adicionar o novo conteúdo ao arquivo
     fs.appendFileSync(nginxFilePath, novoConteudo);
-
+  const certbotCommand = `certbot --nginx -d ${subdominio}`;
+    const { stdout, stderr } = await exec(certbotCommand);
     return true;
   } catch (err) {
     console.error('Erro ao modificar o arquivo Nginx:', err);
@@ -83,28 +85,13 @@ const criarInstancia = async (porta, maxListeners) => {
     const configFilePath = path.join(cloneDir, 'src', 'config.ts');
     modificarConfig(configFilePath, porta, maxListeners, secretKey);
 
-    // Substituir o arquivo swagger.json na pasta src
-     const srcSwaggerPath = path.join(cloneDir, 'src', 'swagger.json');
-     const extSwaggerPath = '/media/root/Extensao/swagger.json';
-     fs.copyFileSync(extSwaggerPath, srcSwaggerPath);
-   
-
     // Modificar o arquivo Nginx
     const modificacaoNginx = await modificarArquivoNginx(porta);
-
-    // Iniciar o npm install em segundo plano
-    await exec(`cd ${cloneDir} && npm install`);
-
-    // Iniciar o npm run build em segundo plano
-    await exec(`cd ${cloneDir} && npm run build`);
 
     if (!modificacaoNginx) {
       console.error('Erro ao modificar o arquivo Nginx.');
       return { success: false, error: 'Erro ao criar a instância.' };
     }
-
-    // Iniciar a instância com PM2
-    await exec(`pm2 start npm --name wpp${porta} -- start`);
 
     // Retornar a resposta com sucesso
     return {
@@ -119,6 +106,7 @@ const criarInstancia = async (porta, maxListeners) => {
   }
 };
 
+// Endpoint para criar a instância
 app.post('/criar-instancia', async (req, res) => {
   // Verifique se o cabeçalho Authorization está presente na solicitação
   const authHeader = req.headers['authorization'];
@@ -147,6 +135,34 @@ app.post('/criar-instancia', async (req, res) => {
   } catch (err) {
     console.error('Erro ao criar instância:', err);
     return res.status(500).json({ error: 'Erro ao criar a instância.' });
+  }
+});
+
+// Endpoint para construir a instância (npm install e npm run build)
+app.post('/buildar-instancia', async (req, res) => {
+  // Este endpoint não requer autenticação, pois não cria uma instância completa,
+  // apenas executa o npm install e npm run build em segundo plano.
+
+  const { porta } = req.body;
+
+  if (!porta) {
+    return res.status(400).json({ error: 'O parâmetro "porta" é obrigatório.' });
+  }
+
+  try {
+    const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
+
+    // Iniciar o npm install em segundo plano
+    await exec(`cd ${cloneDir} && npm install`);
+
+    // Iniciar o npm run build em segundo plano
+    await exec(`cd ${cloneDir} && npm run build`);
+
+    // Retornar uma resposta de sucesso imediata
+    return res.status(200).json({ success: true, message: 'Construção iniciada com sucesso.' });
+  } catch (err) {
+    console.error('Erro ao construir a instância:', err);
+    return res.status(500).json({ error: 'Erro ao construir a instância.' });
   }
 });
 
