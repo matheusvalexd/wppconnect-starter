@@ -81,7 +81,7 @@ const criarInstancia = async (porta, maxListeners) => {
   try {
     // Clonar o repositório do GitHub
     await exec(`git clone https://github.com/wppconnect-team/wppconnect-server.git ${cloneDir}`);
-    await exec(`sudo In -s /media/root/Extensao/wppconnect-main/node_modules ${cloneDir}`);
+    await exec(`ln -s /media/root/Extensao/wppconnect-main/node_modules ${cloneDir}`);
 
     // Alterar as configurações no arquivo config.ts
     const configFilePath = path.join(cloneDir, 'src', 'config.ts');
