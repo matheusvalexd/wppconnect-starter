@@ -2,6 +2,7 @@ const express = require('express');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const fs = require('fs');
+const pm2 = require('pm2');
 const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -142,15 +143,9 @@ app.post('/criar-instancia', async (req, res) => {
 const construirInstanciaEmSegundoPlano = async (porta) => {
   try {
     const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
-
-    // Iniciar o npm install em segundo plano
-    console.log(`Executando 'npm install' na pasta ${cloneDir}...`);
-    await exec(`cd ${cloneDir} && npm install`);
-    console.log(`'npm install' concluído na pasta ${cloneDir}.`);
-
     // Iniciar o npm run build em segundo plano
     console.log(`Executando 'npm run build' na pasta ${cloneDir}...`);
-    await exec(`cd ${cloneDir} && npm run build`);
+    await exec(`cd ${cloneDir} && npm install && npm run build && pm2 start npm --name wpp${porta} -- start`);
     console.log(`'npm run build' concluído na pasta ${cloneDir}.`);
   } catch (err) {
     console.error(`Erro ao construir a instância para a porta ${porta}:`, err);
@@ -174,6 +169,43 @@ app.post('/buildar-instancia', async (req, res) => {
   // Retorne uma resposta de sucesso imediata
   console.log(`Construção para a porta ${porta} iniciada com sucesso.`);
   return res.status(200).json({ success: true, message: 'Construção iniciada com sucesso.' });
+});
+
+// Endpoint para verificar se a aplicação está online no PM2
+app.post('/consulta-online', async (req, res) => {
+  const { porta } = req.body;
+
+  if (!porta) {
+    return res.status(400).json({ error: 'O parâmetro "porta" é obrigatório.' });
+  }
+
+  const nomeDaAplicacao = `wpp${porta}`;
+
+  // Conecte-se ao PM2
+  pm2.connect((err) => {
+    if (err) {
+      console.error('Erro ao conectar-se ao PM2:', err);
+      return res.status(500).json({ error: 'Erro ao consultar o PM2.' });
+    }
+
+    // Verifique o status da aplicação no PM2
+    pm2.describe(nomeDaAplicacao, (err, apps) => {
+      if (err) {
+        console.error(`Erro ao consultar o status da aplicação ${nomeDaAplicacao}:`, err);
+        pm2.disconnect();
+        return res.status(500).json({ error: 'Erro ao consultar o PM2.' });
+      }
+
+      // Verifique se a aplicação está online
+      if (apps.length === 0 || apps[0].pm2_env.status !== 'online') {
+        pm2.disconnect();
+        return res.status(200).json({ online: false, message: 'A aplicação não está online.' });
+      }
+
+      pm2.disconnect();
+      return res.status(200).json({ online: true, message: 'A aplicação está online.' });
+    });
+  });
 });
 
 app.listen(PORT, () => {
