@@ -236,37 +236,12 @@ app.post('/consulta-online', async (req, res) => {
   });
 });
 
-// Função para remover a configuração do subdomínio no arquivo Nginx
-const removerConfiguracaoNginx = async (porta) => {
-  try {
-    const subdominio = `cloud${porta}.wzapi.cloud`;
-    const nginxFilePath = '/etc/nginx/sites-available/wpp';
-
-    // Ler o conteúdo do arquivo
-    const nginxFileContents = fs.readFileSync(nginxFilePath, 'utf-8');
-
-    // Remover a configuração do subdomínio do arquivo
-    const novoConteudo = nginxFileContents.replace(
-      new RegExp(`server_name ${subdominio};[\\s\\S]*?\\}`, 'g'),
-      ''
-    );
-
-    // Atualizar o arquivo com o novo conteúdo
-    fs.writeFileSync(nginxFilePath, novoConteudo, 'utf-8');
-
-    // Recarregar o serviço Nginx para aplicar as alterações
-    await exec('sudo service nginx reload');
-    
-    return true;
-  } catch (err) {
-    console.error('Erro ao remover a configuração do arquivo Nginx:', err);
-    return false;
-  }
-};
 
 // Função assíncrona para deletar uma instância
 const deletarInstancia = async (porta) => {
   const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
+  const arquivoNginx = `/etc/nginx/sites-available/wpp${porta}`;
+  const arquivoNginxEn = `/etc/nginx/sites-enabled/wpp${porta}`;
 
   try {
     // Parar e remover a aplicação do PM2
@@ -274,13 +249,14 @@ const deletarInstancia = async (porta) => {
 
     // Remover a pasta da instância
     await exec(`rm -rf ${cloneDir}`);
+    
+        // Remover a pasta da instância
+    await exec(`rm  ${arquivoNginx}`);
+    await exec(`rm  ${arquivoNginxEn}`);
 
       // Remover o certificado do Certbot
     await exec(`certbot delete --cert-name cloud${porta}.wzapi.cloud --non-interactive`);
 
-    // Remover a configuração do subdomínio no Nginx
-    await removerConfiguracaoNginx(porta);
-    
     // Retornar a resposta com sucesso
     return {
       success: true,
