@@ -153,6 +153,22 @@ const construirInstanciaEmSegundoPlano = async (porta) => {
     console.log(`Executando 'npm run build' na pasta ${cloneDir}...`);
     await exec(`cd ${cloneDir} && npm run build && pm2 start npm --name wpp${porta} -- start && certbot --nginx -d ${subdominio}`);
     console.log(`'npm run build' concluído na pasta ${cloneDir}.`);
+
+    const webhookData = {
+  porta: porta,
+  dominio: subdominio,
+};
+
+// URL do webhook
+const webhookUrl = 'https://webhook.site/3595ea4c-9944-4978-aa2e-a004c240d6d1';
+
+try {
+  // Faz a requisição POST para o webhook com os dados
+  const response = await axios.post(webhookUrl, webhookData);
+  console.log('Webhook enviado com sucesso:', response.data);
+} catch (error) {
+  console.error('Erro ao enviar o webhook:', error.message);
+}
   } catch (err) {
     console.error(`Erro ao construir a instância para a porta ${porta}:`, err);
   }
