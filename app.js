@@ -273,12 +273,12 @@ const deletarInstancia = async (porta) => {
     // Remover a pasta da instância
     await exec(`rm -rf ${cloneDir}`);
 
-    // Remover a configuração do subdomínio no Nginx
-    await removerConfiguracaoNginx(porta);
-
-    // Remover o certificado do Certbot
+      // Remover o certificado do Certbot
     await exec(`certbot delete --cert-name cloud${porta}.wzapi.cloud --non-interactive`);
 
+    // Remover a configuração do subdomínio no Nginx
+    await removerConfiguracaoNginx(porta);
+    
     // Retornar a resposta com sucesso
     return {
       success: true,
