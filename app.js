@@ -147,9 +147,9 @@ const construirInstanciaEmSegundoPlano = async (porta, secretKey) => {
     const subdominio = `cloud${porta}.wzapi.cloud`;
 
     // Iniciar o npm install em segundo plano
-    console.log(`Executando 'npm install' na pasta ${cloneDir}...`);
-    await exec(`cd ${cloneDir} && npm install`);
-    console.log(`'npm install' concluído na pasta ${cloneDir}.`);
+   // console.log(`Executando 'npm install' na pasta ${cloneDir}...`);
+   // await exec(`cd ${cloneDir} && npm install`);
+    //console.log(`'npm install' concluído na pasta ${cloneDir}.`);
 
     // Iniciar o npm run build em segundo plano
     console.log(`Executando 'npm run build' na pasta ${cloneDir}...`);
