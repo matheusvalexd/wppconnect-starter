@@ -139,9 +139,28 @@ app.post('/criar-instancia', async (req, res) => {
 });
 
 // Endpoint para construir a instância (npm install e npm run build)
+const construirInstanciaEmSegundoPlano = async (porta) => {
+  try {
+    const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
+
+    // Iniciar o npm install em segundo plano
+    console.log(`Executando 'npm install' na pasta ${cloneDir}...`);
+    await exec(`cd ${cloneDir} && npm install`);
+    console.log(`'npm install' concluído na pasta ${cloneDir}.`);
+
+    // Iniciar o npm run build em segundo plano
+    console.log(`Executando 'npm run build' na pasta ${cloneDir}...`);
+    await exec(`cd ${cloneDir} && npm run build`);
+    console.log(`'npm run build' concluído na pasta ${cloneDir}.`);
+  } catch (err) {
+    console.error(`Erro ao construir a instância para a porta ${porta}:`, err);
+  }
+};
+
+// Endpoint para construir a instância (npm install e npm run build)
 app.post('/buildar-instancia', async (req, res) => {
   // Este endpoint não requer autenticação, pois não cria uma instância completa,
-  // apenas executa o npm install e npm run build em segundo plano.
+  // apenas inicia o processo de construção em segundo plano.
 
   const { porta } = req.body;
 
@@ -149,21 +168,12 @@ app.post('/buildar-instancia', async (req, res) => {
     return res.status(400).json({ error: 'O parâmetro "porta" é obrigatório.' });
   }
 
-  try {
-    const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
+  // Inicie o processo de construção em segundo plano
+  construirInstanciaEmSegundoPlano(porta);
 
-    // Iniciar o npm install em segundo plano
-    await exec(`cd ${cloneDir} && npm install`);
-
-    // Iniciar o npm run build em segundo plano
-    await exec(`cd ${cloneDir} && npm run build`);
-
-    // Retornar uma resposta de sucesso imediata
-    return res.status(200).json({ success: true, message: 'Construção iniciada com sucesso.' });
-  } catch (err) {
-    console.error('Erro ao construir a instância:', err);
-    return res.status(500).json({ error: 'Erro ao construir a instância.' });
-  }
+  // Retorne uma resposta de sucesso imediata
+  console.log(`Construção para a porta ${porta} iniciada com sucesso.`);
+  return res.status(200).json({ success: true, message: 'Construção iniciada com sucesso.' });
 });
 
 app.listen(PORT, () => {
