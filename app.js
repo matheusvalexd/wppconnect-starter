@@ -78,12 +78,12 @@ server {
 // Função assíncrona para criar instância
 const criarInstancia = async (porta, maxListeners) => {
   const secretKey = generateRandomSecretKey();
-  const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
+  const cloneDir = `/root/Whatsappis/wppconnect-${porta}`;
 
   try {
     // Clonar o repositório do GitHub
     await exec(`git clone https://github.com/wppconnect-team/wppconnect-server.git ${cloneDir}`);
-    await exec(`ln -s /media/root/Extensao/wppconnect-main/node_modules ${cloneDir}`);
+    await exec(`ln -s /root/wppconnect-server/node_modules ${cloneDir}`);
 
     // Alterar as configurações no arquivo config.ts
     const configFilePath = path.join(cloneDir, 'src', 'config.ts');
@@ -145,7 +145,7 @@ app.post('/criar-instancia', async (req, res) => {
 // Endpoint para construir a instância (npm install e npm run build)
 const construirInstanciaEmSegundoPlano = async (porta, secretKey) => {
   try {
-    const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
+    const cloneDir = `/root/Whatsappis/wppconnect-${porta}`;
     const subdominio = `cloud${porta}.wzapi.cloud`;
 
     // Iniciar o npm install em segundo plano
@@ -239,7 +239,7 @@ app.post('/consulta-online', async (req, res) => {
 
 // Função assíncrona para deletar uma instância
 const deletarInstancia = async (porta) => {
-  const cloneDir = `/media/root/Extensao/wppconnect-${porta}`;
+  const cloneDir = `/root/Whatsappis/wppconnect-${porta}`;
   const arquivoNginx = `/etc/nginx/sites-available/wpp${porta}`;
   const arquivoNginxEn = `/etc/nginx/sites-enabled/wpp${porta}`;
 
