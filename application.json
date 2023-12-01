@@ -1,0 +1,17 @@
+{
+  "name": "WppConnect Starter",
+  "version": "1.0.0",
+  "description": "Descrição do seu projeto",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Matheus Vale",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "child_process": "^1.0.2",
+    "express": "^4.17.2",
+    "pm2": "^5.1.2"
+  }
+}
